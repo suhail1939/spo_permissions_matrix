@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "spo-permissions-matrix-client-side-solution",
+    "id": "e5b7d8b4-2a99-48aa-a8e9-58406f14d1b2",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.19.0"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "SPO_Permissions_Matrix description"
+      },
+      "longDescription": {
+        "default": "SPO_Permissions_Matrix description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "spo-permissions-matrix Feature",
+        "description": "The feature that activates elements of the spo-permissions-matrix solution.",
+        "id": "83d761b5-30d3-4601-8af9-4f15420c5c36",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/spo-permissions-matrix.sppkg"
+  }
+}
