@@ -8,13 +8,15 @@
       "name": "spo-permissions-matrix",
       "version": "0.0.1",
       "dependencies": {
-        "@fluentui/react": "^8.106.4",
+        "@fluentui/react": "^8.120.9",
         "@microsoft/sp-component-base": "1.19.0",
         "@microsoft/sp-core-library": "1.19.0",
         "@microsoft/sp-lodash-subset": "1.19.0",
         "@microsoft/sp-office-ui-fabric-core": "1.19.0",
         "@microsoft/sp-property-pane": "1.19.0",
         "@microsoft/sp-webpart-base": "1.19.0",
+        "@pnp/logging": "^4.5.0",
+        "@pnp/sp": "^4.5.0",
         "react": "17.0.1",
         "react-dom": "17.0.1",
         "tslib": "2.3.1"
@@ -4785,6 +4787,97 @@
       "engines": {
         "node": ">=8.0.0"
       }
+    },
+    "node_modules/@pnp/core": {
+      "version": "4.5.0",
+      "resolved": "https://registry.npmjs.org/@pnp/core/-/core-4.5.0.tgz",
+      "integrity": "sha512-8BaF0clEoL31tHNV4dZYJ4343/kmdbYl0EUGixc4pZm+xLeMiId42R9mNpNfWKxhE3htlm7mU+vgseOFib8pxA==",
+      "license": "MIT",
+      "dependencies": {
+        "tslib": "2.7.0"
+      },
+      "engines": {
+        "node": ">=18.12.0"
+      },
+      "funding": {
+        "type": "individual",
+        "url": "https://github.com/sponsors/patrick-rodgers/"
+      }
+    },
+    "node_modules/@pnp/core/node_modules/tslib": {
+      "version": "2.7.0",
+      "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.7.0.tgz",
+      "integrity": "sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==",
+      "license": "0BSD"
+    },
+    "node_modules/@pnp/logging": {
+      "version": "4.5.0",
+      "resolved": "https://registry.npmjs.org/@pnp/logging/-/logging-4.5.0.tgz",
+      "integrity": "sha512-Pyuco2KhMBoUOO5aoc6qxk6zmdGO+eM+h6F2OCGRGrVDL1p6ccOkVCMk5SPG3chXoJxYE/zoHGqxMx3AMAreig==",
+      "license": "MIT",
+      "dependencies": {
+        "tslib": "2.7.0"
+      },
+      "engines": {
+        "node": ">=18.12.0"
+      },
+      "funding": {
+        "type": "individual",
+        "url": "https://github.com/sponsors/patrick-rodgers/"
+      }
+    },
+    "node_modules/@pnp/logging/node_modules/tslib": {
+      "version": "2.7.0",
+      "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.7.0.tgz",
+      "integrity": "sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==",
+      "license": "0BSD"
+    },
+    "node_modules/@pnp/queryable": {
+      "version": "4.5.0",
+      "resolved": "https://registry.npmjs.org/@pnp/queryable/-/queryable-4.5.0.tgz",
+      "integrity": "sha512-uvhfV0bCL2cLulcx/AQ5AEPQesRphuQ5pTqPLcxfbqHFXZY6T3cjkKBYfNqRpYjPzMQlNW5qo9vEA3JUGCrbVw==",
+      "license": "MIT",
+      "dependencies": {
+        "@pnp/core": "4.5.0",
+        "tslib": "2.7.0"
+      },
+      "engines": {
+        "node": ">=18.12.0"
+      },
+      "funding": {
+        "type": "individual",
+        "url": "https://github.com/sponsors/patrick-rodgers/"
+      }
+    },
+    "node_modules/@pnp/queryable/node_modules/tslib": {
+      "version": "2.7.0",
+      "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.7.0.tgz",
+      "integrity": "sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==",
+      "license": "0BSD"
+    },
+    "node_modules/@pnp/sp": {
+      "version": "4.5.0",
+      "resolved": "https://registry.npmjs.org/@pnp/sp/-/sp-4.5.0.tgz",
+      "integrity": "sha512-hKTR4kc6hsZ/nrxjB8T9GCYg5tNY6/hut9P1gkK08Df8gzh42rlYKk7gb7K0U00hqlwoRfw9iS/18Ah8ErZVzg==",
+      "license": "MIT",
+      "dependencies": {
+        "@pnp/core": "4.5.0",
+        "@pnp/queryable": "4.5.0",
+        "tslib": "2.7.0"
+      },
+      "engines": {
+        "node": ">=18.12.0"
+      },
+      "funding": {
+        "type": "individual",
+        "url": "https://github.com/sponsors/patrick-rodgers/"
+      }
+    },
+    "node_modules/@pnp/sp/node_modules/tslib": {
+      "version": "2.7.0",
+      "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.7.0.tgz",
+      "integrity": "sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==",
+      "license": "0BSD"
     },
     "node_modules/@pnpm/crypto.base32-hash": {
       "version": "2.0.0",
