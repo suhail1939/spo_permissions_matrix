@@ -4,4 +4,5 @@ export interface IUsersPermissionsProps {
   environmentMessage: string;
   hasTeamsContext: boolean;
   userDisplayName: string;
+  webpartContext: any;
 }
