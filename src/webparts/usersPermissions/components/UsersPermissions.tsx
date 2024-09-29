@@ -5,7 +5,7 @@ import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/contro
 // import { escape } from '@microsoft/sp-lodash-subset';
 import { getSP } from "../pnpjsConfig";
 import { fileFromServerRelativePath, IFile, SPFI, spfi } from "@pnp/sp/presets/all";
-import { PrimaryButton } from '@fluentui/react';
+import { IPersonaProps, PrimaryButton } from '@fluentui/react';
 import styles from './UsersPermissions.module.scss';
 import { IViewField, ListView } from '@pnp/spfx-controls-react';
 import { IPermissionMatrix, IUserPermissionsState } from './IUserPermissionsState';
@@ -15,7 +15,7 @@ const columns: IViewField[] = [
     name: 'Object',
     displayName: 'Object',
     minWidth: 100,
-    maxWidth: 150,
+    maxWidth: 350,
     isResizable: true,
     sorting: true,
     render: (item: IPermissionMatrix) => {
@@ -31,7 +31,7 @@ const columns: IViewField[] = [
     name: 'Title',
     displayName: 'Title',
     minWidth: 100,
-    maxWidth: 150,
+    maxWidth: 350,
     isResizable: true,
     sorting: true,
     render: (item: IPermissionMatrix) => {
@@ -46,7 +46,7 @@ const columns: IViewField[] = [
   {
     name: 'URL',
     minWidth: 100,
-    maxWidth: 150,
+    maxWidth: 350,
     isResizable: true,
     render: (item: IPermissionMatrix) => {
       return item.URL
@@ -64,7 +64,7 @@ const columns: IViewField[] = [
     name: 'Type',
     displayName: 'Type',
     minWidth: 100,
-    maxWidth: 150,
+    maxWidth: 350,
     isResizable: true,
     sorting: true,
     render: (item: IPermissionMatrix) => {
@@ -75,7 +75,7 @@ const columns: IViewField[] = [
     name: 'Permissions',
     displayName: 'Permissions',
     minWidth: 100,
-    maxWidth: 150,
+    maxWidth: 350,
     isResizable: true,
     sorting: true,
     render: (item: IPermissionMatrix) => {
@@ -86,7 +86,7 @@ const columns: IViewField[] = [
     name: 'GrantedThrough',
     displayName: 'Granted Through',
     minWidth: 100,
-    maxWidth: 150,
+    maxWidth: 350,
     isResizable: true,
     sorting: true,
     render: (item: IPermissionMatrix) => {
@@ -101,7 +101,8 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
   constructor(props: IUsersPermissionsProps) {
     super(props);
     this.state = {
-      permissionItems: []
+      permissionItems: [],
+      selectedUserEmail: ''
     }
     this._sp = getSP();
   }
@@ -153,9 +154,10 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
   }
 
   private searchUsers =async () => {
-    const spCache = spfi(this._sp);
-    // const url: string = "/teams/TestSuhail/Shared Documents/SPOPermissionsRpt.csv";
-    const url: string = "/teams/TestSuhail/Shared Documents/SPOPermissionsRpt.csv";
+    if (this.state.selectedUserEmail) {
+      const spCache = spfi(this._sp);
+    // const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV2.csv';
+    const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3.csv';
     //const blob: Blob = await spCache.web.getFileByServerRelativePath(url).getBlob();
     const file: IFile = fileFromServerRelativePath(spCache.web, url);
     const fileContent = await file.getText();
@@ -166,12 +168,40 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         "Object": JSON.parse(v['"Object"']),
         "Title": JSON.parse(v['"Title"']),
         "URL": JSON.parse(v['"URL"']),
-        "Type":v['"Type"'],
+        "HasUniquePermissions": JSON.parse(v['"HasUniquePermissions"']),
+        "Users": JSON.parse(v['"Users"']),
+        "Type":JSON.parse(v['"Type"']),
         "Permissions": JSON.parse(v['"Permissions"']),
         "GrantedThrough": JSON.parse(v['"GrantedThrough"']),
+        // "Object": JSON.parse(v["Object"]),
+        // "Title": JSON.parse(v["Title"]),
+        // "URL": JSON.parse(v["URL"]),
+        // "HasUniquePermissions": JSON.parse(v["HasUniquePermissions"]),
+        // "Users": JSON.parse(v["Users"]),
+        // "Type":JSON.parse(v["Type"]),
+        // "Permissions": JSON.parse(v["Permissions"]),
+        // "GrantedThrough": JSON.parse(v["GrantedThrough"]),
       }
     });
-    this.setState({permissionItems});
+    const filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i)=> {
+      // return v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0;
+      return v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length>0;
+    })
+    this.setState({permissionItems: filteredItems});
+    }
+    else{
+      alert('Please select User');
+    }
+  }
+
+  private onUsersPeoplePickerChange = (items: IPersonaProps[]) => {
+    if(items.length > 0){
+      const selectedUserEmail: string  = items[0].secondaryText!;
+      this.setState({selectedUserEmail});
+    }
+    else{
+      this.setState({ selectedUserEmail: ''})
+    }
   }
 
 //   private csvToJson(csvString: string) {
@@ -222,7 +252,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
                 // styles={{root:{width: 250}}}
                 context={this.props.webpartContext}
                 titleText="Users"
-                personSelectionLimit={50}
+                personSelectionLimit={1}
                 groupName={''} // Leave this blank in case you want to filter from all users
                 showtooltip={true}
                 // required={this.state.formData.Mandatory}
@@ -234,6 +264,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
               // errorMessage={this.state.formErrMsg.ErrMsg}
               // webAbsoluteUrl='https://siemens.sharepoint.com/teams/TestSuhail'
               webAbsoluteUrl={this.props.webpartContext._pageContext._site.absoluteUrl}
+              onChange={(items) => this.onUsersPeoplePickerChange(items)}
               />
             </div>
             <div className={styles['fl-span4']}>
