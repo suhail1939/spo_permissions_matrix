@@ -92,6 +92,12 @@ const columns: IViewField[] = [
     render: (item: IPermissionMatrix) => {
       return item.GrantedThrough
     }
+  },
+  {
+    name: 'Users',
+    displayName: '',
+    minWidth: 0,
+    maxWidth: 0,
   }
 ];
 export default class UsersPermissions extends React.Component<IUsersPermissionsProps, IUserPermissionsState> {
@@ -102,6 +108,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     super(props);
     this.state = {
       permissionItems: [],
+      permissionItemsGrid: [],
       selectedUserEmail: '',
       libraryNamesDropdownOptions: [],
       selectedLibraryName: ''
@@ -110,6 +117,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
   }
 
   async componentDidMount(): Promise<void> {
+    await this.getPermissionMatrix();
     // spCache.web.lists.getByTitle('Documents').items.select('ID')().then(items => {
       //   if (items.length > 0) {
         //     console.log('Items found: {0}', items.length);
@@ -155,16 +163,12 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     return result;
   }
 
-  private searchUsers =async () => {
-    if (this.state.selectedUserEmail) {
-      const spCache = spfi(this._sp);
-    // const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV2.csv';
+  private getPermissionMatrix = async () => {
+    const spCache = spfi(this._sp);
     const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3.csv';
-    //const blob: Blob = await spCache.web.getFileByServerRelativePath(url).getBlob();
     const file: IFile = fileFromServerRelativePath(spCache.web, url);
     const fileContent = await file.getText();
     const csvJSONArr: any[] = this.csvJSON(fileContent);
-    console.log(csvJSONArr)
     const permissionItems: IPermissionMatrix[] = csvJSONArr.map((v, i)=> {
       return {
         "Object": JSON.parse(v['"Object"']),
@@ -174,26 +178,19 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         "Users": JSON.parse(v['"Users"']),
         "Type":JSON.parse(v['"Type"']),
         "Permissions": JSON.parse(v['"Permissions"']),
-        "GrantedThrough": JSON.parse(v['"GrantedThrough"']),
-        // "Object": JSON.parse(v["Object"]),
-        // "Title": JSON.parse(v["Title"]),
-        // "URL": JSON.parse(v["URL"]),
-        // "HasUniquePermissions": JSON.parse(v["HasUniquePermissions"]),
-        // "Users": JSON.parse(v["Users"]),
-        // "Type":JSON.parse(v["Type"]),
-        // "Permissions": JSON.parse(v["Permissions"]),
-        // "GrantedThrough": JSON.parse(v["GrantedThrough"]),
+        "GrantedThrough": JSON.parse(v['"GrantedThrough"'])
       }
     });
-    let filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i)=> {
-      // return v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0;
-      return v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0 && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
-      // return v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length>0 && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
-    })
-    this.setState({permissionItems: filteredItems});
+    this.setState({permissionItems}, ()=> {
+      this.setLibraryNames();
+    });
+  }
+
+  private setLibraryNames = () => {
     //library names logic
-    let libraryNamesDropdownOptions: IDropdownOption[] = filteredItems.filter((v,i)=> {
-      return v.Object.includes('Library') && !v.URL.includes('Lists');
+    const permissionItems : IPermissionMatrix[] = this.state.permissionItems;
+    let libraryNamesDropdownOptions: IDropdownOption[] = permissionItems.filter((v,i, self)=> {
+      return v.Object.includes('Library') && !v.URL.includes('Lists') && self.map(x => x.Title).indexOf(v.Title) == i;
     }).map((v,i)=> {
       return {
         key: v.Title, 
@@ -202,24 +199,76 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     })
     libraryNamesDropdownOptions.unshift({key: 'All', text: 'All'})
     this.setState({libraryNamesDropdownOptions});
+  }
+
+  private searchUsers =async () => {
+    if (this.state.selectedUserEmail || this.state.selectedLibraryName) {
+    //   const spCache = spfi(this._sp);
+    // const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3.csv';
+    // const file: IFile = fileFromServerRelativePath(spCache.web, url);
+    // const fileContent = await file.getText();
+    // const csvJSONArr: any[] = this.csvJSON(fileContent);
+    // console.log(csvJSONArr)
+    // const permissionItems: IPermissionMatrix[] = csvJSONArr.map((v, i)=> {
+    //   return {
+    //     "Object": JSON.parse(v['"Object"']),
+    //     "Title": JSON.parse(v['"Title"']),
+    //     "URL": JSON.parse(v['"URL"']),
+    //     "HasUniquePermissions": JSON.parse(v['"HasUniquePermissions"']),
+    //     "Users": JSON.parse(v['"Users"']),
+    //     "Type":JSON.parse(v['"Type"']),
+    //     "Permissions": JSON.parse(v['"Permissions"']),
+    //     "GrantedThrough": JSON.parse(v['"GrantedThrough"']),
+    //     // "Object": JSON.parse(v["Object"]),
+    //     // "Title": JSON.parse(v["Title"]),
+    //     // "URL": JSON.parse(v["URL"]),
+    //     // "HasUniquePermissions": JSON.parse(v["HasUniquePermissions"]),
+    //     // "Users": JSON.parse(v["Users"]),
+    //     // "Type":JSON.parse(v["Type"]),
+    //     // "Permissions": JSON.parse(v["Permissions"]),
+    //     // "GrantedThrough": JSON.parse(v["GrantedThrough"]),
+    //   }
+    // });
+    const permissionItems: IPermissionMatrix[] = this.state.permissionItems;
+    let filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i)=> {
+      // return v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0;
+      // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
+      return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
+    })
+    this.setState({permissionItemsGrid: filteredItems});
+    // //library names logic
+    // let libraryNamesDropdownOptions: IDropdownOption[] = filteredItems.filter((v,i)=> {
+    //   return v.Object.includes('Library') && !v.URL.includes('Lists');
+    // }).map((v,i)=> {
+    //   return {
+    //     key: v.Title, 
+    //     text: v.Title
+    //   }
+    // })
+    // libraryNamesDropdownOptions.unshift({key: 'All', text: 'All'})
+    // this.setState({libraryNamesDropdownOptions});
     }
     else{
-      alert('Please select User');
+      alert(`Please select ${!this.state.selectedUserEmail && !this.state.selectedLibraryName ? 'User/Library' : this.state.selectedUserEmail ? 'Library' :'User'}`);
     }
   }
 
   private onUsersPeoplePickerChange = (items: IPersonaProps[]) => {
     if(items.length > 0){
       const selectedUserEmail: string  = items[0].secondaryText!;
-      this.setState({selectedUserEmail, selectedLibraryName: '', libraryNamesDropdownOptions: [],permissionItems:[]});
+      this.setState({selectedUserEmail, 
+        // selectedLibraryName: '', libraryNamesDropdownOptions: [],
+        permissionItemsGrid:[]});
     }
     else{
-      this.setState({ selectedUserEmail: '', selectedLibraryName: '', libraryNamesDropdownOptions: [], permissionItems: []})
+      this.setState({ selectedUserEmail: '', 
+        // selectedLibraryName: '', libraryNamesDropdownOptions: [], 
+        permissionItemsGrid: []})
     }
   }
 
   private onDropdownChange = (selectedOption: IDropdownOption) => {
-    this.setState({selectedLibraryName: selectedOption.text, permissionItems: []})
+    this.setState({selectedLibraryName: selectedOption.text, permissionItemsGrid: []})
   }
 
 //   private csvToJson(csvString: string) {
@@ -264,7 +313,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       <>
         <h2>Check Users Permissions</h2>
         <div className={styles['fl-grid']}>
-          <div>
+          <>
             <div className={styles['fl-span4']}>
               <PeoplePicker
                 // styles={{root:{width: 250}}}
@@ -289,16 +338,17 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
               options={this.state.libraryNamesDropdownOptions}
               label='Libraries'
               onChange={(ev,option) => this.onDropdownChange(option!)}
+              unselectable="on"
               />
             </div>
-            <div className={styles['fl-span4']}>
-              <PrimaryButton text='Search' onClick={this.searchUsers} />
+            <div className={styles['fl-span2']}>
+              <PrimaryButton style={{marginTop: '27px'}} text='Search' onClick={this.searchUsers} />
             </div>
-          </div>
+          </>
           <div className={styles['fl-span12']}>
             <ListView
-              items={this.state.permissionItems}
-              groupByFields={[]}
+              items={this.state.permissionItemsGrid}
+              // groupByFields={[{name: 'Users', order: GroupOrder.ascending }]}
               viewFields={columns}
             />
           </div>

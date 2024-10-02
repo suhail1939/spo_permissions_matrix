@@ -12,6 +12,7 @@ export interface IPermissionMatrix{
 }
 
 export interface IUserPermissionsState{
+    permissionItemsGrid: IPermissionMatrix[],
     permissionItems: IPermissionMatrix[],
     selectedUserEmail: string;
     libraryNamesDropdownOptions: IDropdownOption[],
