@@ -17,4 +17,5 @@ export interface IUserPermissionsState{
     selectedUserEmail: string;
     libraryNamesDropdownOptions: IDropdownOption[],
     selectedLibraryName: string;
+    activeTabName: string;
 }

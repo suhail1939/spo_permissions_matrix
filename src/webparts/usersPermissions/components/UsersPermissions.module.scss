@@ -114,3 +114,7 @@
     @extend %gridContainer;
     @include flUI-span(6);
 }
+
+.hidden{
+  display: none;
+}
