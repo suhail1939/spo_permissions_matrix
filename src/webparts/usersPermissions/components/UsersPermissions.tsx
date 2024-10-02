@@ -5,7 +5,7 @@ import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/contro
 // import { escape } from '@microsoft/sp-lodash-subset';
 import { getSP } from "../pnpjsConfig";
 import { fileFromServerRelativePath, IFile, SPFI, spfi } from "@pnp/sp/presets/all";
-import { IPersonaProps, PrimaryButton } from '@fluentui/react';
+import { Dropdown, IDropdownOption, IPersonaProps, PrimaryButton } from '@fluentui/react';
 import styles from './UsersPermissions.module.scss';
 import { IViewField, ListView } from '@pnp/spfx-controls-react';
 import { IPermissionMatrix, IUserPermissionsState } from './IUserPermissionsState';
@@ -102,7 +102,9 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     super(props);
     this.state = {
       permissionItems: [],
-      selectedUserEmail: ''
+      selectedUserEmail: '',
+      libraryNamesDropdownOptions: [],
+      selectedLibraryName: ''
     }
     this._sp = getSP();
   }
@@ -183,11 +185,23 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         // "GrantedThrough": JSON.parse(v["GrantedThrough"]),
       }
     });
-    const filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i)=> {
+    let filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i)=> {
       // return v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0;
-      return v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length>0;
+      return v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0 && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
+      // return v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length>0 && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
     })
     this.setState({permissionItems: filteredItems});
+    //library names logic
+    let libraryNamesDropdownOptions: IDropdownOption[] = filteredItems.filter((v,i)=> {
+      return v.Object.includes('Library') && !v.URL.includes('Lists');
+    }).map((v,i)=> {
+      return {
+        key: v.Title, 
+        text: v.Title
+      }
+    })
+    libraryNamesDropdownOptions.unshift({key: 'All', text: 'All'})
+    this.setState({libraryNamesDropdownOptions});
     }
     else{
       alert('Please select User');
@@ -197,11 +211,15 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
   private onUsersPeoplePickerChange = (items: IPersonaProps[]) => {
     if(items.length > 0){
       const selectedUserEmail: string  = items[0].secondaryText!;
-      this.setState({selectedUserEmail});
+      this.setState({selectedUserEmail, selectedLibraryName: '', libraryNamesDropdownOptions: [],permissionItems:[]});
     }
     else{
-      this.setState({ selectedUserEmail: ''})
+      this.setState({ selectedUserEmail: '', selectedLibraryName: '', libraryNamesDropdownOptions: [], permissionItems: []})
     }
+  }
+
+  private onDropdownChange = (selectedOption: IDropdownOption) => {
+    this.setState({selectedLibraryName: selectedOption.text, permissionItems: []})
   }
 
 //   private csvToJson(csvString: string) {
@@ -262,9 +280,15 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
                 principalTypes={[PrincipalType.User]}
               // defaultSelectedUsers={defaultSelectedUsersArr}
               // errorMessage={this.state.formErrMsg.ErrMsg}
-              // webAbsoluteUrl='https://siemens.sharepoint.com/teams/TestSuhail'
               webAbsoluteUrl={this.props.webpartContext._pageContext._site.absoluteUrl}
               onChange={(items) => this.onUsersPeoplePickerChange(items)}
+              />
+            </div>
+            <div className={styles['fl-span4']}>
+            <Dropdown 
+              options={this.state.libraryNamesDropdownOptions}
+              label='Libraries'
+              onChange={(ev,option) => this.onDropdownChange(option!)}
               />
             </div>
             <div className={styles['fl-span4']}>
@@ -273,7 +297,6 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
           </div>
           <div className={styles['fl-span12']}>
             <ListView
-              // items={[{'Object': 'Site Collection', 'Title': 'TestSuhail', 'URL': 'https://siemens.sharepoint.com/teams/TestSuhail'}]}
               items={this.state.permissionItems}
               groupByFields={[]}
               viewFields={columns}

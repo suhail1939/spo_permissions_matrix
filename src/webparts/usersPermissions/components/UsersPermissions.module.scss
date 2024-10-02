@@ -89,6 +89,16 @@
     @extend %gridContainer;
     @include flUI-span(4);
 }
+
+.fl-span4-r1c1 {
+  @extend %gridContainer;
+  @include flUI-span(4,1,2);
+}
+
+.fl-span4-r1c2 {
+  @extend %gridContainer;
+  @include flUI-span(4,2,1);
+}
  
 .fl-span2 {
     @extend %gridContainer;
