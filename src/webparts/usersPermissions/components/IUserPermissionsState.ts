@@ -9,6 +9,7 @@ export interface IPermissionMatrix{
     Type: string;
     Permissions: string;
     GrantedThrough: string;
+    LibraryName: string;
 }
 
 export interface IUserPermissionsState{
