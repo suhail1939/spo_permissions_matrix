@@ -5,7 +5,7 @@ import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/contro
 // import { escape } from '@microsoft/sp-lodash-subset';
 import { getSP } from "../pnpjsConfig";
 import { fileFromServerRelativePath, IFile, SPFI, spfi } from "@pnp/sp/presets/all";
-import { ComboBox, Dropdown, IDropdownOption, IPersonaProps, Pivot, PivotItem, PrimaryButton } from '@fluentui/react';
+import { Dropdown, IDropdownOption, IPersonaProps, Pivot, PivotItem, PrimaryButton } from '@fluentui/react';
 import styles from './UsersPermissions.module.scss';
 import { GroupOrder, ListView } from '@pnp/spfx-controls-react';
 import { IPermissionMatrix, IUserPermissionsState } from './IUserPermissionsState';
@@ -77,8 +77,8 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
 
   private getPermissionMatrix = async () => {
     const spCache = spfi(this._sp);
-    // const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3.csv';
-    const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3(8thOct).csv';
+    const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3.csv';
+    // const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3(8thOct).csv';
     const file: IFile = fileFromServerRelativePath(spCache.web, url);
     const fileContent = await file.getText();
     const csvJSONArr: any[] = this.csvJSON(fileContent);
@@ -165,7 +165,8 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       const permissionItems: IPermissionMatrix[] = this.state.permissionItems;
       let filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i) => {
         // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
-        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName))));
+         return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName))));
+        // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName))));
       })
       this.setState({ permissionItemsGrid: filteredItems });
       // //library names logic
@@ -350,15 +351,9 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     return (
       <>
         <h2>SPO Permissions Report</h2>
-        <div className={styles['fl-grid']}>
+        {/* <div className={styles['fl-grid']}>
           <>
             <div className={`${styles['fl-span4']}`}>
-              {/* <Dropdown
-                options={[{key: 'Governance', text: 'Governance'}, {key: 'M365LP', text: 'M365LP'}, {key: 'NewHomeSite', text: 'NewHomeSite'}]}
-                label='Sites'
-                onChange={(ev, option) => this.onDropdownChange(option!)}
-                unselectable="on"
-              /> */}
               <ComboBox
                 label="Sites"
                 options={[{ key: 'Governance', text: 'Governance' }, { key: 'M365LP', text: 'M365LP' }, { key: 'NewHomeSite', text: 'NewHomeSite' }]}
@@ -366,14 +361,9 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
                 autoComplete="on"
                 unselectable='on'
               />
-              {/* <div
-                // since this example is an inline picker, it needs some forced space below
-                // so when wrapped in an overflow: hidden container in the website, the dropdown shows up
-                style={{ height: '10em' }}
-              /> */}
             </div>
           </>
-        </div>
+        </div> */}
         <Pivot onLinkClick={(item) => this.onPivotClick(item!)}>
           <PivotItem headerText='User'
           // onClick={() => this.onPivotClick('User')} 
