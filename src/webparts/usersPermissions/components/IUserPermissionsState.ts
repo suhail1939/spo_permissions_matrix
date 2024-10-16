@@ -19,4 +19,6 @@ export interface IUserPermissionsState{
     libraryNamesDropdownOptions: IDropdownOption[],
     selectedLibraryName: string;
     activeTabName: string;
+    siteUrl: string;
+    reportFound: boolean;
 }

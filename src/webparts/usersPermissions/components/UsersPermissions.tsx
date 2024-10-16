@@ -5,7 +5,7 @@ import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/contro
 // import { escape } from '@microsoft/sp-lodash-subset';
 import { getSP } from "../pnpjsConfig";
 import { fileFromServerRelativePath, IFile, SPFI, spfi } from "@pnp/sp/presets/all";
-import { Dropdown, IDropdownOption, IPersonaProps, Pivot, PivotItem, PrimaryButton } from '@fluentui/react';
+import { Dropdown, IDropdownOption, IPersonaProps, Pivot, PivotItem, PrimaryButton, TextField } from '@fluentui/react';
 import styles from './UsersPermissions.module.scss';
 import { GroupOrder, ListView } from '@pnp/spfx-controls-react';
 import { IPermissionMatrix, IUserPermissionsState } from './IUserPermissionsState';
@@ -23,13 +23,15 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       selectedUserEmail: '',
       libraryNamesDropdownOptions: [],
       selectedLibraryName: '',
-      activeTabName: 'User'
+      activeTabName: 'User',
+      siteUrl: '',
+      reportFound: false
     }
     this._sp = getSP();
   }
 
   async componentDidMount(): Promise<void> {
-    await this.getPermissionMatrix();
+    // await this.getPermissionMatrix();
     // spCache.web.lists.getByTitle('Documents').items.select('ID')().then(items => {
     //   if (items.length > 0) {
     //     console.log('Items found: {0}', items.length);
@@ -75,34 +77,84 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     return result;
   }
 
-  private getPermissionMatrix = async () => {
+  // private getPermissionMatrix = async () => {
+  //   const spCache = spfi(this._sp);
+  //   // const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3.csv';
+  //   const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3(8thOct).csv';
+  //   const file: IFile = fileFromServerRelativePath(spCache.web, url);
+  //   const fileContent = await file.getText();
+  //   const csvJSONArr: any[] = this.csvJSON(fileContent);
+  //   const permissionItems: IPermissionMatrix[] = csvJSONArr.map((v, i) => {
+  //     const object: string = JSON.parse(v['"Object"']);
+  //     const url: string = JSON.parse(v['"URL"']);
+  //     const title: string = JSON.parse(v['"Title"']);
+  //     const isLibrary: boolean = (object.includes('Library') || object.includes('Folder') || object.includes('File')) && !url.includes('Lists');
+  //     const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : '';
+  //     return {
+  //       "Object": JSON.parse(v['"Object"']),
+  //       "Title": JSON.parse(v['"Title"']),
+  //       "URL": JSON.parse(v['"URL"']),
+  //       "HasUniquePermissions": JSON.parse(v['"HasUniquePermissions"']),
+  //       "Users": JSON.parse(v['"Users"']),
+  //       "Type": JSON.parse(v['"Type"']),
+  //       "Permissions": JSON.parse(v['"Permissions"']),
+  //       "GrantedThrough": JSON.parse(v['"GrantedThrough"']),
+  //       "LibraryName": libraryName
+  //     }
+  //   });
+  //   this.setState({ permissionItems }, () => {
+  //     this.setLibraryNames();
+  //   });
+  // }
+
+  
+
+  private fetchReport = async () => {
     const spCache = spfi(this._sp);
-    const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3.csv';
-    // const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + '/Shared Documents/SitePermissionRptV3(8thOct).csv';
-    const file: IFile = fileFromServerRelativePath(spCache.web, url);
-    const fileContent = await file.getText();
-    const csvJSONArr: any[] = this.csvJSON(fileContent);
-    const permissionItems: IPermissionMatrix[] = csvJSONArr.map((v, i) => {
-      const object: string = JSON.parse(v['"Object"']);
-      const url: string = JSON.parse(v['"URL"']);
-      const title: string = JSON.parse(v['"Title"']);
-      const isLibrary: boolean = (object.includes('Library') || object.includes('Folder') || object.includes('File')) && !url.includes('Lists');
-      const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : '';
-      return {
-        "Object": JSON.parse(v['"Object"']),
-        "Title": JSON.parse(v['"Title"']),
-        "URL": JSON.parse(v['"URL"']),
-        "HasUniquePermissions": JSON.parse(v['"HasUniquePermissions"']),
-        "Users": JSON.parse(v['"Users"']),
-        "Type": JSON.parse(v['"Type"']),
-        "Permissions": JSON.parse(v['"Permissions"']),
-        "GrantedThrough": JSON.parse(v['"GrantedThrough"']),
-        "LibraryName": libraryName
-      }
-    });
-    this.setState({ permissionItems }, () => {
-      this.setLibraryNames();
-    });
+    const listItems = await spCache.web.lists.getByTitle('GenerateCSV').items.filter(`SiteUrl eq '${this.state.siteUrl}'`)();
+    console.log(listItems);
+
+    if (listItems.length > 0) {
+      const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + `/Shared Documents/AllSitesCSV/${this.state.siteUrl.split('https://')[1].replaceAll('/', '_') + '.CSV'}`;
+      const file: IFile = await fileFromServerRelativePath(spCache.web, url);
+      await file.getText().catch((error) => {
+        console.log(error);
+        this.setState({
+          reportFound: false
+        })
+        alert('Report does not exist. Please click on Generate CSV button.')
+      }).then((fileContent) => {
+        this.setState({
+          reportFound: true
+        })
+        console.log(fileContent);
+        const csvJSONArr: any[] = this.csvJSON(fileContent!);
+        const permissionItems: IPermissionMatrix[] = csvJSONArr.map((v, i) => {
+          const object: string = JSON.parse(v['"Object"']);
+          const url: string = JSON.parse(v['"URL"']);
+          const title: string = JSON.parse(v['"Title"']);
+          const isLibrary: boolean = (object.includes('Library') || object.includes('Folder') || object.includes('File')) && !url.includes('Lists');
+          const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : '';
+          return {
+            "Object": JSON.parse(v['"Object"']),
+            "Title": JSON.parse(v['"Title"']),
+            "URL": JSON.parse(v['"URL"']),
+            "HasUniquePermissions": JSON.parse(v['"HasUniquePermissions"']),
+            "Users": JSON.parse(v['"Users"']),
+            "Type": JSON.parse(v['"Type"']),
+            "Permissions": JSON.parse(v['"Permissions"']),
+            "GrantedThrough": JSON.parse(v['"GrantedThrough"']),
+            "LibraryName": libraryName
+          }
+        });
+        this.setState({ permissionItems }, () => {
+          this.setLibraryNames();
+          alert('Report Fetched successfully');
+        });
+      });
+
+    }
+
   }
 
   private getLibraryNameFromFileFolderUrl = (fileUrl: string, isFile: boolean) => {
@@ -165,8 +217,8 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       const permissionItems: IPermissionMatrix[] = this.state.permissionItems;
       let filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i) => {
         // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
-         return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName))));
-        // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName))));
+         return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName))))  && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true);
+        // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true);
       })
       this.setState({ permissionItemsGrid: filteredItems });
       // //library names logic
@@ -206,6 +258,20 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
 
   private onDropdownChange = (selectedOption: IDropdownOption) => {
     this.setState({ selectedLibraryName: selectedOption.text, permissionItemsGrid: [] })
+  }
+
+  private onTextEntered = (enteredValue: string) => {
+    this.setState({
+      siteUrl: enteredValue
+    })
+  }
+
+  private generateCSV = async () => {
+    const spCache = spfi(this._sp);
+    await spCache.web.lists.getByTitle("GenerateCSV").items.add({
+      SiteUrl: this.state.siteUrl,
+      IsCSVRequested: "true"
+    });
   }
 
   // private onPivotClick = (activeTabName: string) => {
@@ -257,24 +323,19 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       {
         name: 'Object',
         displayName: 'Object',
-        minWidth: 100,
-        maxWidth: 350,
+        minWidth: 50,
+        maxWidth: 100,
         isResizable: true,
         sorting: true,
         render: (item: IPermissionMatrix) => {
           return item.Object
         }
-        // render: (item?: IOCSRData) => (
-        //   <span className={styles.hoverable} onClick={() => this._viewDetails(item)}>
-        //     {item?.OCSSRD}
-        //   </span>
-        // ),
       },
       {
         name: 'Title',
         displayName: 'Title',
-        minWidth: 100,
-        maxWidth: 350,
+        minWidth: 50,
+        maxWidth: 100,
         isResizable: true,
         sorting: true,
         render: (item: IPermissionMatrix) => {
@@ -287,29 +348,13 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         // ),
       },
       {
-        name: 'URL',
-        minWidth: 100,
-        maxWidth: 350,
-        isResizable: true,
-        render: (item: IPermissionMatrix) => {
-          return <a title={item.URL}>{item.URL}</a>
-        }
-        // render: (item: IOCSRData) => (
-        //   <IconButton
-        //     iconProps={{ iconName: 'More' }}
-        //     title="More actions"
-        //     ariaLabel="More actions"
-        //     onClick={(e: React.MouseEvent<HTMLElement>) => this._showContextualMenu(e, item)}
-        //   />
-        // ),
-      },
-      {
         name: 'Type',
         displayName: 'Type',
         minWidth: 100,
         maxWidth: 350,
         isResizable: true,
         sorting: true,
+        isVisible:false,
         render: (item: IPermissionMatrix) => {
           return item.Type
         }
@@ -317,8 +362,8 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       {
         name: 'Permissions',
         displayName: 'Permissions',
-        minWidth: 100,
-        maxWidth: 350,
+        minWidth: 50,
+        maxWidth: 50,
         isResizable: true,
         sorting: true,
         render: (item: IPermissionMatrix) => {
@@ -329,7 +374,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         name: 'GrantedThrough',
         displayName: 'Granted Through',
         minWidth: 100,
-        maxWidth: 350,
+        maxWidth: 150,
         isResizable: true,
         sorting: true,
         render: (item: IPermissionMatrix) => {
@@ -339,11 +384,20 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       {
         name: 'Users',
         displayName: '',
-        minWidth: 0,
-        maxWidth: 0,
+        minWidth: 200,
+        maxWidth: 350,
         isVisible: this.state.activeTabName == 'Library',
         render: (item: IPermissionMatrix) => {
           return <span title={item.Users}>{item.Users}</span>
+        }
+      },
+      {
+        name: 'URL',
+        minWidth: 100,
+        maxWidth: 350,
+        isResizable: true,
+        render: (item: IPermissionMatrix) => {
+          return <a title={item.URL}>{item.URL}</a>
         }
       }
     ].filter(column => column.isVisible !== false); // Filter out non-visible columns
@@ -351,6 +405,23 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     return (
       <>
         <h2>SPO Permissions Report</h2>
+        <div className={styles['fl-grid']}>
+          <>
+            <div className={`${styles['fl-span8']}`}>
+              <TextField
+                label="Site Url"
+                placeholder='Site url e.g. https://qauottawa.sharepoint.com/sites/M365LP'
+                onChange={(event, newValue) => this.onTextEntered(newValue!)}
+              />
+            </div>
+            <div className={styles['fl-span2']}>
+              <PrimaryButton style={{ marginTop: '27px' }} text='Fetch Report' onClick={this.fetchReport} />
+            </div>
+            <div className={styles['fl-span2']}>
+              <PrimaryButton style={{ marginTop: '27px' }} text='Generate CSV' onClick={this.generateCSV}/>
+            </div>
+          </>
+        </div>
         {/* <div className={styles['fl-grid']}>
           <>
             <div className={`${styles['fl-span4']}`}>
