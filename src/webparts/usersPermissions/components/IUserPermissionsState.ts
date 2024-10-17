@@ -21,4 +21,6 @@ export interface IUserPermissionsState{
     activeTabName: string;
     siteUrl: string;
     reportFound: boolean;
+    csvGenerationInProgress: boolean;
+    isSiteUrlValid: boolean;
 }
