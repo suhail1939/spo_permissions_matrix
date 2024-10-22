@@ -6,7 +6,7 @@ import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/contro
 // import { escape } from '@microsoft/sp-lodash-subset';
 import { getSP } from "../pnpjsConfig";
 import { fileFromServerRelativePath, IFile, SPFI, spfi } from "@pnp/sp/presets/all";
-import { Dropdown, IDropdownOption, IPersonaProps, Label, Pivot, PivotItem, PrimaryButton, TextField } from '@fluentui/react';
+import { Dropdown, IDropdownOption, IPersonaProps, Label, Pivot, PivotItem, PrimaryButton } from '@fluentui/react';
 import styles from './UsersPermissions.module.scss';
 import { GroupOrder, ListView } from '@pnp/spfx-controls-react';
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
@@ -26,7 +26,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       libraryNamesDropdownOptions: [],
       selectedLibraryName: '',
       activeTabName: 'User',
-      siteUrl: '',
+      siteUrl: this.props.webpartContext._pageContext._site.absoluteUrl,
       reportFound: false,
       csvGenerationInProgress: false,
       isSiteUrlValid: false
@@ -35,6 +35,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
   }
 
   async componentDidMount(): Promise<void> {
+    await this.fetchReport();
     // await this.getPermissionMatrix();
     // spCache.web.lists.getByTitle('Documents').items.select('ID')().then(items => {
     //   if (items.length > 0) {
@@ -217,7 +218,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
               });
               this.setState({ permissionItems }, () => {
                 this.setLibraryNames();
-                alert('Report Fetched successfully');
+                //alert('Report Fetched successfully');
               });
             }
           });
@@ -299,8 +300,8 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       const permissionItems: IPermissionMatrix[] = this.state.permissionItems;
       let filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i) => {
         // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
-        // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
-        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
+        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
+        // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
       })
       this.setState({ permissionItemsGrid: filteredItems });
       // //library names logic
@@ -342,14 +343,14 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     this.setState({ selectedLibraryName: selectedOption.text, permissionItemsGrid: [] })
   }
 
-  private onTextEntered = (enteredValue: string) => {
-    this.setState({
-      siteUrl: enteredValue,
-      csvGenerationInProgress: false,
-      isSiteUrlValid: false,
-      reportFound: false
-    })
-  }
+  // private onTextEntered = (enteredValue: string) => {
+  //   this.setState({
+  //     siteUrl: enteredValue,
+  //     csvGenerationInProgress: false,
+  //     isSiteUrlValid: false,
+  //     reportFound: false
+  //   })
+  // }
 
   private generateCSV = async () => {
     const spCache = spfi(this._sp);
@@ -375,6 +376,21 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     });
     }
   }
+
+  private stringToArray = (str: string) => {
+    let arr = [''];
+    let j = 0;
+
+    for (let i = 0; i < str.length; i++) {
+        if (str.charAt(i) == " ") {
+            j++;
+            arr.push('');
+        } else {
+            arr[j] += str.charAt(i);
+        }
+    }
+    return arr;
+}
 
   // private onPivotClick = (activeTabName: string) => {
   //   this.setState({ activeTabName });
@@ -509,7 +525,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         <h2>SPO Permissions Report</h2>
         <div className={styles['fl-grid']}>
           <>
-            <div className={`${styles['fl-span8']}`}>
+            {/* <div className={`${styles['fl-span8']}`}>
               <TextField
                 label="Site Url"
                 placeholder='Site url e.g. https://qauottawa.sharepoint.com/sites/M365LP'
@@ -518,7 +534,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
             </div>
             <div className={styles['fl-span2']}>
               <PrimaryButton style={{ marginTop: '27px' }} text='Fetch Report' onClick={this.fetchReport} />
-            </div>
+            </div> */}
             <div className={styles['fl-span2']}>
               <PrimaryButton style={{ marginTop: '27px' }} text='Generate CSV' onClick={this.generateCSV} 
               disabled={!this.state.isSiteUrlValid || this.state.csvGenerationInProgress}
@@ -569,6 +585,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
                 // errorMessage={this.state.formErrMsg.ErrMsg}
                 webAbsoluteUrl={this.props.webpartContext._pageContext._site.absoluteUrl}
                 onChange={(items) => this.onUsersPeoplePickerChange(items)}
+                defaultSelectedUsers={this.stringToArray(this.state.selectedUserEmail)}
               />
             </div>
             <div className={`${styles['fl-span4']} ${this.state.activeTabName == 'User' ? styles.hidden : ''}`}>
