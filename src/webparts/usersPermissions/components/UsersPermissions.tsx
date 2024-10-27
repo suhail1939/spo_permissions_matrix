@@ -530,6 +530,21 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       }
     ].filter(column => column.isVisible !== false); // Filter out non-visible columns
 
+    const exportToExcel = () => {
+      const header = columns.map(col => col.name).join(',');
+      const listviewItems: any[] = this.state.permissionItemsGrid;
+      const rows = listviewItems.map(item => columns.map(col => item[col.name]).join(',')).join('\n');
+      const csvContent = `${header}\n${rows}`;
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', 'export.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
     return (
       <>
         <h2>SPO Permissions Report</h2>
@@ -612,6 +627,13 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
               />
             </div>
           </>
+          <div className={styles['fl-span6']}></div>
+          {/* <div className={styles['fl-span4']}></div> */}
+          <div className={styles['fl-span6']}>
+              <PrimaryButton style={{ marginTop: '27px' }} text='Export to Excel' onClick={exportToExcel}
+                disabled={this.state.permissionItemsGrid.length == 0}
+              />
+            </div>
           <div className={styles['fl-span12']}>
             <ListView
               items={this.state.permissionItemsGrid}
