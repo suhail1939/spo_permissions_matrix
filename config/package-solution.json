@@ -3,7 +3,7 @@
   "solution": {
     "name": "spo-permissions-matrix-client-side-solution",
     "id": "e5b7d8b4-2a99-48aa-a8e9-58406f14d1b2",
-    "version": "1.0.0.11",
+    "version": "1.0.0.12",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,

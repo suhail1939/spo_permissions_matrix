@@ -162,7 +162,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
 
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()+1).padStart(2, '0');   //added 1 day as powershell script runs every day
+    const day = String(date.getDate() + 1).padStart(2, '0');   //added 1 day as powershell script runs every day
 
 
     return `${month}/${day}/${year}`;
@@ -324,8 +324,8 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       // })
       let filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i) => {
         // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
-        // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
-        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName.replace(/[^a-zA-Z ]/g, ""))))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
+        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName.replace(/[^a-zA-Z ]/g, ""))))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
+        // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName.replace(/[^a-zA-Z ]/g, ""))))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
       })
       this.setState({ permissionItemsGrid: filteredItems });
       // //library names logic
@@ -549,7 +549,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       const listviewItems: any[] = this.state.permissionItemsGrid;
       const rows = listviewItems.map(item => columns.map(col => item[col.name]).join(',')).join('\n');
       const csvContent = `${header}\n${rows}`;
-      
+
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -644,10 +644,10 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
           <div className={styles['fl-span6']}></div>
           {/* <div className={styles['fl-span4']}></div> */}
           <div className={styles['fl-span6']}>
-              <PrimaryButton style={{ marginTop: '27px' }} text='Export to Excel' onClick={exportToExcel}
-                disabled={this.state.permissionItemsGrid.length == 0}
-              />
-            </div>
+            <PrimaryButton style={{ marginTop: '27px' }} text='Export to Excel' onClick={exportToExcel}
+              disabled={this.state.permissionItemsGrid.length == 0}
+            />
+          </div>
           <div className={styles['fl-span12']}>
             <ListView
               items={this.state.permissionItemsGrid}
