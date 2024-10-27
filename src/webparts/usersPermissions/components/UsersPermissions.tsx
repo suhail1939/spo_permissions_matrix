@@ -29,7 +29,8 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       siteUrl: this.props.webpartContext._pageContext._site.absoluteUrl,
       reportFound: false,
       csvGenerationInProgress: false,
-      isSiteUrlValid: false
+      isSiteUrlValid: false,
+      updatedReportDate: ''
     }
     this._sp = getSP();
   }
@@ -156,6 +157,17 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     })
   }
 
+  private formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()+1).padStart(2, '0');   //added 1 day as powershell script runs every day
+
+
+    return `${month}/${day}/${year}`;
+  };
+
   private fetchReport = async () => {
     const isValidUrl: boolean = this.isValidUrl(this.state.siteUrl);
     if (!isValidUrl) {
@@ -180,8 +192,10 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         console.log(listItems);
 
         if (listItems.length > 0) {
+          const updatedReportDate: string = this.formatDate(listItems[0].Modified);
           this.setState({
-            csvGenerationInProgress: listItems[0].IsCSVRequested
+            csvGenerationInProgress: listItems[0].IsCSVRequested,
+            updatedReportDate: updatedReportDate
           })
           const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + `/Shared Documents/AllSitesCSV/${normalizedUrl.split('https://')[1].replaceAll('/', '_') + '.CSV'}`;
           const file: IFile = await fileFromServerRelativePath(spCache.web, url);
@@ -567,7 +581,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
             </div>
             <Label
               className={`${styles['fl-span12']} ${this.state.csvGenerationInProgress ? '' : styles.hidden}`}
-            >CSV Generation is in process. You will be able to see the updated report after sometime.</Label>
+            >CSV Generation is in process. You will be able to see the updated report on {this.state.updatedReportDate}.</Label>
           </>
         </div>
         {/* <div className={styles['fl-grid']}>

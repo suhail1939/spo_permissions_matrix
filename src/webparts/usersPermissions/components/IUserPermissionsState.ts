@@ -23,4 +23,5 @@ export interface IUserPermissionsState{
     reportFound: boolean;
     csvGenerationInProgress: boolean;
     isSiteUrlValid: boolean;
+    updatedReportDate: string;
 }
