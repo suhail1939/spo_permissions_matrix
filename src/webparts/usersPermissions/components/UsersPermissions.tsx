@@ -200,16 +200,17 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
               const csvJSONArr: any[] = this.csvJSON(fileContent!);
               const permissionItems: IPermissionMatrix[] = csvJSONArr.map((v, i) => {
                 const object: string = v['"Object"'] ? JSON.parse(v['"Object"']) : '';
-                const url: string = v['"URL"'] ?JSON.parse(v['"URL"']) : '';
-                const title: string =v['"Title"'] ? JSON.parse(v['"Title"']) : '';
+                const url: string = v['"URL"'] ? JSON.parse(v['"URL"']) : '';
+                const title: string = v['"Title"'] ? JSON.parse(v['"Title"']) : '';
                 const isLibrary: boolean = (object.includes('Library') || object.includes('Folder') || object.includes('File')) && !url.includes('Lists');
                 const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : '';
+                // const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : selectedLibraryName) : '';
                 return {
                   "Object": object,
-                  "Title":title,
-                  "URL":url,
-                  "HasUniquePermissions":v['"HasUniquePermissions"']? JSON.parse(v['"HasUniquePermissions"']) : '',
-                  "Users": v['"Users"']? JSON.parse(v['"Users"']) : '',
+                  "Title": title,
+                  "URL": url,
+                  "HasUniquePermissions": v['"HasUniquePermissions"'] ? JSON.parse(v['"HasUniquePermissions"']) : '',
+                  "Users": v['"Users"'] ? JSON.parse(v['"Users"']) : '',
                   "Type": v['"Type"'] ? JSON.parse(v['"Type"']) : '',
                   "Permissions": v['"Permissions"'] ? JSON.parse(v['"Permissions"']) : '',
                   "GrantedThrough": v['"GrantedThrough"'] ? JSON.parse(v['"GrantedThrough"']) : '',
@@ -231,7 +232,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
           alert('Report does not exist. Please click on Generate CSV button.')
         }
       }
-      else{
+      else {
         this.setState({
           csvGenerationInProgress: false,
           reportFound: false
@@ -298,10 +299,19 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       //   }
       // });
       const permissionItems: IPermissionMatrix[] = this.state.permissionItems;
+      // const selectedLibraryName : string = this.state.selectedLibraryName;
+      // permissionItems.map((v, i) => {
+      //   const isLibrary: boolean = (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists');
+      //   const libraryName: string = isLibrary ? ((v.Object.includes('Library') && !v.URL.includes('Lists')) ? v.Title :this.state.libraryNamesDropdownOptions.filter((value,index)=>value.text.replace(/[^a-zA-Z ]/g, "") == selectedLibraryName).length> 0 ? selectedLibraryName : '') : '';
+      //   // if (selectedLibraryName!= 'All') {
+      //   //   v.LibraryName = libraryName;
+      //   // }
+      //   v.LibraryName = libraryName
+      // })
       let filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i) => {
         // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
-        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
-        // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
+        // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
+        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName.replace(/[^a-zA-Z ]/g, ""))))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
       })
       this.setState({ permissionItemsGrid: filteredItems });
       // //library names logic
@@ -355,25 +365,25 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
   private generateCSV = async () => {
     const spCache = spfi(this._sp);
     const listItems = await spCache.web.lists.getByTitle('GenerateCSV').items.filter(`SiteUrl eq '${this.state.siteUrl}'`).top(1)();
-    const objListData : {} = {
+    const objListData: {} = {
       SiteUrl: this.state.siteUrl,
       IsCSVRequested: "true"
     };
     if (listItems.length == 0) {
-      await spCache.web.lists.getByTitle("GenerateCSV").items.add(objListData).then((data)=> {
+      await spCache.web.lists.getByTitle("GenerateCSV").items.add(objListData).then((data) => {
         alert('CSV Generation is in process. You will be able to see the updated report after sometime.')
         this.setState({
           csvGenerationInProgress: true
         })
-    });
+      });
     }
-    else{
-      await spCache.web.lists.getByTitle("GenerateCSV").items.getById(listItems[0]['ID']).update(objListData).then((data)=> {
+    else {
+      await spCache.web.lists.getByTitle("GenerateCSV").items.getById(listItems[0]['ID']).update(objListData).then((data) => {
         alert('CSV Generation is in process. You will be able to see the updated report after sometime.')
         this.setState({
           csvGenerationInProgress: true
         })
-    });
+      });
     }
   }
 
@@ -382,15 +392,15 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     let j = 0;
 
     for (let i = 0; i < str.length; i++) {
-        if (str.charAt(i) == " ") {
-            j++;
-            arr.push('');
-        } else {
-            arr[j] += str.charAt(i);
-        }
+      if (str.charAt(i) == " ") {
+        j++;
+        arr.push('');
+      } else {
+        arr[j] += str.charAt(i);
+      }
     }
     return arr;
-}
+  }
 
   // private onPivotClick = (activeTabName: string) => {
   //   this.setState({ activeTabName });
@@ -536,12 +546,12 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
               <PrimaryButton style={{ marginTop: '27px' }} text='Fetch Report' onClick={this.fetchReport} />
             </div> */}
             <div className={styles['fl-span2']}>
-              <PrimaryButton style={{ marginTop: '27px' }} text='Generate CSV' onClick={this.generateCSV} 
-              disabled={!this.state.isSiteUrlValid || this.state.csvGenerationInProgress}
+              <PrimaryButton style={{ marginTop: '27px' }} text='Generate CSV' onClick={this.generateCSV}
+                disabled={!this.state.isSiteUrlValid || this.state.csvGenerationInProgress}
               />
             </div>
             <Label
-            className={`${styles['fl-span12']} ${this.state.csvGenerationInProgress ? '' : styles.hidden}`}
+              className={`${styles['fl-span12']} ${this.state.csvGenerationInProgress ? '' : styles.hidden}`}
             >CSV Generation is in process. You will be able to see the updated report after sometime.</Label>
           </>
         </div>
@@ -597,8 +607,8 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
               />
             </div>
             <div className={styles['fl-span2']}>
-              <PrimaryButton style={{ marginTop: '27px' }} text='Search' onClick={this.searchUsers} 
-              disabled={!this.state.reportFound}
+              <PrimaryButton style={{ marginTop: '27px' }} text='Search' onClick={this.searchUsers}
+                disabled={!this.state.reportFound}
               />
             </div>
           </>
