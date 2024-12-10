@@ -197,7 +197,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
             csvGenerationInProgress: listItems[0].IsCSVRequested,
             updatedReportDate: updatedReportDate
           })
-          const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + `/Shared Documents/AllSitesCSV/${normalizedUrl.split('https://')[1].replaceAll('/', '_') + '.CSV'}`;
+          const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + `/SiteAssets/AllSitesCSV/${normalizedUrl.split('https://')[1].replaceAll('/', '_') + '.CSV'}`;
           const file: IFile = await fileFromServerRelativePath(spCache.web, url);
           await file.getText().catch((error) => {
             console.log(error);
