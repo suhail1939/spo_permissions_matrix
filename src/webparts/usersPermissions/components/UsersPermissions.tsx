@@ -157,16 +157,16 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     })
   }
 
-  private formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
+  // private formatDate = (dateString: string): string => {
+  //   const date = new Date(dateString);
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate() + 1).padStart(2, '0');   //added 1 day as powershell script runs every day
+  //   const year = date.getFullYear();
+  //   const month = String(date.getMonth() + 1).padStart(2, '0');
+  //   const day = String(date.getDate() + 1).padStart(2, '0');   //added 1 day as powershell script runs every day
 
 
-    return `${month}/${day}/${year}`;
-  };
+  //   return `${month}/${day}/${year}`;
+  // };
 
   private fetchReport = async () => {
     const isValidUrl: boolean = this.isValidUrl(this.state.siteUrl);
@@ -188,15 +188,15 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
           isSiteUrlValid: true
         })
         const spCache = spfi(this._sp);
-        const listItems = await spCache.web.lists.getByTitle('GenerateCSV').items.filter(`SiteUrl eq '${normalizedUrl}'`).top(1)();
-        console.log(listItems);
+        // const listItems = await spCache.web.lists.getByTitle('GenerateCSV').items.filter(`SiteUrl eq '${normalizedUrl}'`).top(1)();
+        // console.log(listItems);
 
-        if (listItems.length > 0) {
-          const updatedReportDate: string = this.formatDate(listItems[0].Modified);
-          this.setState({
-            csvGenerationInProgress: listItems[0].IsCSVRequested,
-            updatedReportDate: updatedReportDate
-          })
+        // if (listItems.length > 0) {
+          // const updatedReportDate: string = this.formatDate(listItems[0].Modified);
+          // this.setState({
+          //   csvGenerationInProgress: listItems[0].IsCSVRequested,
+          //   updatedReportDate: updatedReportDate
+          // })
           const url: string = this.props.webpartContext._pageContext._site.serverRelativeUrl + `/SiteAssets/AllSitesCSV/${normalizedUrl.split('https://')[1].replaceAll('/', '_') + '.CSV'}`;
           const file: IFile = await fileFromServerRelativePath(spCache.web, url);
           await file.getText().catch((error) => {
@@ -204,7 +204,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
             this.setState({
               reportFound: false
             })
-            alert('Report does not exist. Please click on Generate CSV button.')
+            alert('Report does not exist for this site.')
           }).then((fileContent) => {
             if (fileContent != undefined) {
               this.setState({
@@ -238,13 +238,13 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
             }
           });
 
-        }
-        else {
-          this.setState({
-            reportFound: false
-          })
-          alert('Report does not exist. Please click on Generate CSV button.')
-        }
+        // }
+        // else {
+        //   this.setState({
+        //     reportFound: false
+        //   })
+        //   alert('Report does not exist. Please click on Generate CSV button.')
+        // }
       }
       else {
         this.setState({
@@ -376,30 +376,30 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
   //   })
   // }
 
-  private generateCSV = async () => {
-    const spCache = spfi(this._sp);
-    const listItems = await spCache.web.lists.getByTitle('GenerateCSV').items.filter(`SiteUrl eq '${this.state.siteUrl}'`).top(1)();
-    const objListData: {} = {
-      SiteUrl: this.state.siteUrl,
-      IsCSVRequested: "true"
-    };
-    if (listItems.length == 0) {
-      await spCache.web.lists.getByTitle("GenerateCSV").items.add(objListData).then((data) => {
-        alert('CSV Generation is in process. You will be able to see the updated report after sometime.')
-        this.setState({
-          csvGenerationInProgress: true
-        })
-      });
-    }
-    else {
-      await spCache.web.lists.getByTitle("GenerateCSV").items.getById(listItems[0]['ID']).update(objListData).then((data) => {
-        alert('CSV Generation is in process. You will be able to see the updated report after sometime.')
-        this.setState({
-          csvGenerationInProgress: true
-        })
-      });
-    }
-  }
+  // private generateCSV = async () => {
+  //   const spCache = spfi(this._sp);
+  //   const listItems = await spCache.web.lists.getByTitle('GenerateCSV').items.filter(`SiteUrl eq '${this.state.siteUrl}'`).top(1)();
+  //   const objListData: {} = {
+  //     SiteUrl: this.state.siteUrl,
+  //     IsCSVRequested: "true"
+  //   };
+  //   if (listItems.length == 0) {
+  //     await spCache.web.lists.getByTitle("GenerateCSV").items.add(objListData).then((data) => {
+  //       alert('CSV Generation is in process. You will be able to see the updated report after sometime.')
+  //       this.setState({
+  //         csvGenerationInProgress: true
+  //       })
+  //     });
+  //   }
+  //   else {
+  //     await spCache.web.lists.getByTitle("GenerateCSV").items.getById(listItems[0]['ID']).update(objListData).then((data) => {
+  //       alert('CSV Generation is in process. You will be able to see the updated report after sometime.')
+  //       this.setState({
+  //         csvGenerationInProgress: true
+  //       })
+  //     });
+  //   }
+  // }
 
   private stringToArray = (str: string) => {
     let arr = [''];
@@ -574,11 +574,11 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
             <div className={styles['fl-span2']}>
               <PrimaryButton style={{ marginTop: '27px' }} text='Fetch Report' onClick={this.fetchReport} />
             </div> */}
-            <div className={styles['fl-span2']}>
+            {/* <div className={styles['fl-span2']}>
               <PrimaryButton style={{ marginTop: '27px' }} text='Generate CSV' onClick={this.generateCSV}
                 disabled={!this.state.isSiteUrlValid || this.state.csvGenerationInProgress}
               />
-            </div>
+            </div> */}
             <Label
               className={`${styles['fl-span12']} ${this.state.csvGenerationInProgress ? '' : styles.hidden}`}
             >CSV Generation is in process. You will be able to see the updated report on {this.state.updatedReportDate}.</Label>
