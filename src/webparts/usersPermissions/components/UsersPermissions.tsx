@@ -6,7 +6,7 @@ import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/contro
 // import { escape } from '@microsoft/sp-lodash-subset';
 import { getSP } from "../pnpjsConfig";
 import { fileFromServerRelativePath, IFile, SPFI, spfi } from "@pnp/sp/presets/all";
-import { Dropdown, IDropdownOption, IPersonaProps, Label, Pivot, PivotItem, PrimaryButton } from '@fluentui/react';
+import { Dropdown, IDropdownOption, IPersonaProps, Label, Pivot, PivotItem, PrimaryButton, Spinner, SpinnerSize } from '@fluentui/react';
 import styles from './UsersPermissions.module.scss';
 import { GroupOrder, ListView } from '@pnp/spfx-controls-react';
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
@@ -210,14 +210,19 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
               this.setState({
                 reportFound: true
               })
-              console.log(fileContent);
+              //console.log(fileContent);
               const csvJSONArr: any[] = this.csvJSON(fileContent!);
+              console.log('executed csvJSONArr')
               const permissionItems: IPermissionMatrix[] = csvJSONArr.map((v, i) => {
+                try {
+                  console.log(`Index is :  ${i}`)
                 const object: string = v['"Object"'] ? JSON.parse(v['"Object"']) : '';
                 const url: string = v['"URL"'] ? JSON.parse(v['"URL"']) : '';
                 const title: string = v['"Title"'] ? JSON.parse(v['"Title"']) : '';
+                console.log(`Title is: ${title}`)
                 const isLibrary: boolean = (object.includes('Library') || object.includes('Folder') || object.includes('File')) && !url.includes('Lists');
-                const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : '';
+                // const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : '';
+                const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? this.getLibraryNameFromFileFolderUrl(url, false) : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : ''; //fixed 28th July 2025
                 // const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : selectedLibraryName) : '';
                 return {
                   "Object": object,
@@ -230,7 +235,23 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
                   "GrantedThrough": v['"GrantedThrough"'] ? JSON.parse(v['"GrantedThrough"']) : '',
                   "LibraryName": libraryName
                 }
+                } catch (error) {
+                  console.log(`Error occured in map function: ${error}`)
+                  //alert(`Error occured in map function: ${error}`)
+                  return {
+                    "Object": "",
+                  "Title": "",
+                  "URL": "",
+                  "HasUniquePermissions": "",
+                  "Users": "",
+                  "Type": "",
+                  "Permissions": "",
+                  "GrantedThrough": "",
+                  "LibraryName": ""
+                  }
+                }
               });
+              console.log(`executed permissionItems count: ${permissionItems.length}`)
               this.setState({ permissionItems }, () => {
                 this.setLibraryNames();
                 //alert('Report Fetched successfully');
@@ -272,14 +293,24 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
   private setLibraryNames = () => {
     //library names logic
     const permissionItems: IPermissionMatrix[] = this.state.permissionItems;
-    let libraryNamesDropdownOptions: IDropdownOption[] = permissionItems.filter((v, i, self) => {
-      return v.Object.includes('Library') && !v.URL.includes('Lists') && self.map(x => x.Title).indexOf(v.Title) == i;
-    }).map((v, i) => {
-      return {
-        key: v.Title,
-        text: v.Title
-      }
-    })
+    // let libraryNamesDropdownOptions: IDropdownOption[] = permissionItems.filter((v, i, self) => {
+    //   return v.Object.includes('Library') && !v.URL.includes('Lists') && self.map(x => x.Title).indexOf(v.Title) == i;
+    // }).map((v, i) => {
+    //   return {
+    //     key: v.Title,
+    //     text: v.Title
+    //   }
+    // })
+    const libraryNames = Array.from(new Set(
+      permissionItems
+        .filter(item => item.LibraryName)
+        .map(item => item.LibraryName)
+    ));
+
+  const libraryNamesDropdownOptions: IDropdownOption[] = libraryNames.map(name => ({
+    key: name,
+    text: name
+  }));
     libraryNamesDropdownOptions.unshift({ key: 'All', text: 'All' })
     this.setState({ libraryNamesDropdownOptions });
   }
@@ -324,7 +355,8 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       // })
       let filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i) => {
         // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
-        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName.replace(/[^a-zA-Z ]/g, ""))))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
+        // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName.replace(/[^a-zA-Z ]/g, ""))))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV'); //working before 28th July 2025
+        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.LibraryName != '') || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.LibraryName.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
         // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName.replace(/[^a-zA-Z ]/g, ""))))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
       })
       this.setState({ permissionItemsGrid: filteredItems });
@@ -597,6 +629,10 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
             </div>
           </>
         </div> */}
+        {
+          this.state.reportFound == false && this.state.permissionItems.length == 0 &&
+          <Spinner label='loading report data...' size={SpinnerSize.large}></Spinner>
+        }
         <Pivot onLinkClick={(item) => this.onPivotClick(item!)}>
           <PivotItem headerText='User'
           // onClick={() => this.onPivotClick('User')} 
