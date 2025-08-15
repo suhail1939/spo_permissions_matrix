@@ -10,6 +10,7 @@ import { Dropdown, IDropdownOption, IPersonaProps, Label, Pivot, PivotItem, Prim
 import styles from './UsersPermissions.module.scss';
 import { GroupOrder, ListView } from '@pnp/spfx-controls-react';
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
+import * as Papa from 'papaparse';
 import { IPermissionMatrix, IUserPermissionsState } from './IUserPermissionsState';
 
 
@@ -55,32 +56,85 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
     // console.log(blob);
   }
 
-  private csvJSON(csvText: string) {
-    let lines: any[] = [];
-    const linesArray = csvText.split('\n');
-    // for trimming and deleting extra space 
-    linesArray.forEach((e: any) => {
-      const row = e.replace(/[\s]+[,]+|[,]+[\s]+/g, ',').trim();
-      lines.push(row);
+  // private csvJSON(csvText: string) {
+  //   let lines: any[] = [];
+  //   const linesArray = csvText.split('\n');
+  //   // for trimming and deleting extra space 
+  //   linesArray.forEach((e: any) => {
+  //     const row = e.replace(/[\s]+[,]+|[,]+[\s]+/g, ',').trim();
+  //     lines.push(row);
+  //   });
+  //   // for removing empty record
+  //   lines.splice(lines.length - 1, 1);
+  //   const result = [];
+  //   const headers = lines[0].split(",");
+
+  //   for (let i = 1; i < lines.length; i++) {
+
+  //     const obj: any = {};
+  //     const currentline = lines[i].split(",");
+
+  //     for (let j = 0; j < headers.length; j++) {
+  //       obj[headers[j]] = currentline[j];
+  //     }
+  //     result.push(obj);
+  //   }
+  //   //return result; //JavaScript object
+  //   // return JSON.stringify(result); //JSON
+  //   return result;
+  // }
+
+//   private csvJSONNew(csvText: string) {
+//   // Split lines but remove empty or whitespace-only lines
+//   const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+
+//   // Get headers by splitting first line, but handle quoted commas
+//   const headers = this.parseCSVLine(lines[0]);
+
+//   const result = [];
+
+//   for (let i = 1; i < lines.length; i++) {
+//     const currentline = this.parseCSVLine(lines[i]);
+//     const obj: any = {};
+
+//     for (let j = 0; j < headers.length; j++) {
+//       obj[headers[j]] = currentline[j] !== undefined ? currentline[j].trim() : '';
+//     }
+//     result.push(obj);
+//   }
+
+//   return result;
+// }
+
+// // Helper to parse one CSV line correctly with quoted fields
+// private parseCSVLine(line: string): string[] {
+//   const result: string[] = [];
+//   let current = '';
+//   let inQuotes = false;
+
+//   for (let i = 0; i < line.length; i++) {
+//     const char = line[i];
+    
+//     if (char === '"' && (i === 0 || line[i-1] !== '\\')) {
+//       inQuotes = !inQuotes; // Toggle quotes state
+//     } else if (char === ',' && !inQuotes) {
+//       // Comma outside quotes: new field
+//       result.push(current);
+//       current = '';
+//     } else {
+//       current += char;
+//     }
+//   }
+//   result.push(current);
+//   return result;
+// }
+
+  private csvJSONPapaParse(csvText: string) {
+    const result = Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true
     });
-    // for removing empty record
-    lines.splice(lines.length - 1, 1);
-    const result = [];
-    const headers = lines[0].split(",");
-
-    for (let i = 1; i < lines.length; i++) {
-
-      const obj: any = {};
-      const currentline = lines[i].split(",");
-
-      for (let j = 0; j < headers.length; j++) {
-        obj[headers[j]] = currentline[j];
-      }
-      result.push(obj);
-    }
-    //return result; //JavaScript object
-    // return JSON.stringify(result); //JSON
-    return result;
+    return result.data;
   }
 
   // private getPermissionMatrix = async () => {
@@ -211,43 +265,105 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
                 reportFound: true
               })
               //console.log(fileContent);
-              const csvJSONArr: any[] = this.csvJSON(fileContent!);
-              console.log('executed csvJSONArr')
+              // const csvJSONArr: any[] = this.csvJSON(fileContent!);
+              // const csvJSONArr: any[] = this.csvJSONNew(fileContent!);
+              const csvJSONArr: any[] = this.csvJSONPapaParse(fileContent!);
+              console.log('fetched csv content');
+              console.log(`executed csvJSONArr: ${JSON.stringify(csvJSONArr[32312])}`)
+              // const permissionItems: IPermissionMatrix[] = csvJSONArr.map((v, i) => {
+              //   try {
+              //     // console.log(`Index is :  ${i}`)
+              //   const object: string = v['"Object"'] ? JSON.parse(v['"Object"']) : '';
+              //   const url: string = v['"URL"'] ? JSON.parse(v['"URL"']) : '';
+              //   const title: string = v['"Title"'] ? JSON.parse(v['"Title"']) : '';
+              //   // console.log(`Title is: ${title}`)
+              //   const isLibrary: boolean = (object.includes('Library') || object.includes('Folder') || object.includes('File')) && !url.includes('Lists');
+              //   // const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : '';
+              //   const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? this.getLibraryNameFromFileFolderUrl(url, false) : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : ''; //fixed 28th July 2025
+              //   // const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : selectedLibraryName) : '';
+              //   return {
+              //     "Object": object,
+              //     "Title": title,
+              //     "URL": url,
+              //     "HasUniquePermissions": v['"HasUniquePermissions"'] ? JSON.parse(v['"HasUniquePermissions"']) : '',
+              //     "Users": v['"Users"'] ? JSON.parse(v['"Users"']) : '',
+              //     "Type": v['"Type"'] ? JSON.parse(v['"Type"']) : '',
+              //     "Permissions": v['"Permissions"'] ? JSON.parse(v['"Permissions"']) : '',
+              //     "GrantedThrough": v['"GrantedThrough"'] ? JSON.parse(v['"GrantedThrough"']) : '',
+              //     "LibraryName": libraryName
+              //   }
+              //   } catch (error) {
+              //     console.log(`Error occured in map function: ${error}`)
+              //     //alert(`Error occured in map function: ${error}`)
+              //     return {
+              //       "Object": "",
+              //     "Title": "",
+              //     "URL": "",
+              //     "HasUniquePermissions": "",
+              //     "Users": "",
+              //     "Type": "",
+              //     "Permissions": "",
+              //     "GrantedThrough": "",
+              //     "LibraryName": ""
+              //     }
+              //   }
+              // });
               const permissionItems: IPermissionMatrix[] = csvJSONArr.map((v, i) => {
                 try {
-                  console.log(`Index is :  ${i}`)
-                const object: string = v['"Object"'] ? JSON.parse(v['"Object"']) : '';
-                const url: string = v['"URL"'] ? JSON.parse(v['"URL"']) : '';
-                const title: string = v['"Title"'] ? JSON.parse(v['"Title"']) : '';
-                console.log(`Title is: ${title}`)
-                const isLibrary: boolean = (object.includes('Library') || object.includes('Folder') || object.includes('File')) && !url.includes('Lists');
-                // const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : '';
-                const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? this.getLibraryNameFromFileFolderUrl(url, false) : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : ''; //fixed 28th July 2025
-                // const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? title : selectedLibraryName) : '';
-                return {
-                  "Object": object,
-                  "Title": title,
-                  "URL": url,
-                  "HasUniquePermissions": v['"HasUniquePermissions"'] ? JSON.parse(v['"HasUniquePermissions"']) : '',
-                  "Users": v['"Users"'] ? JSON.parse(v['"Users"']) : '',
-                  "Type": v['"Type"'] ? JSON.parse(v['"Type"']) : '',
-                  "Permissions": v['"Permissions"'] ? JSON.parse(v['"Permissions"']) : '',
-                  "GrantedThrough": v['"GrantedThrough"'] ? JSON.parse(v['"GrantedThrough"']) : '',
-                  "LibraryName": libraryName
-                }
+                  // const object = this.cleanQuotes(v['"Object"']);
+                  // const url = this.cleanQuotes(v['"URL"']);
+                  // const title = this.cleanQuotes(v['"Title"']);
+                  const object: string = v.Object || '';
+                  const url: string = v.URL || '';
+                  const title: string = v.Title || '';
+
+                  
+                  const isLibrary: boolean = (object.includes('Library') || object.includes('Folder') || object.includes('File')) && !url.includes('Lists');
+                  
+                  // const libraryName: string = isLibrary
+                  //   ? (object.includes('Library') && !url.includes('Lists')
+                  //     ? this.getLibraryNameFromFileFolderUrl(url, false)
+                  //     : object.includes('File')
+                  //       ? this.getLibraryNameFromFileFolderUrl(url, true)
+                  //       : this.getLibraryNameFromFileFolderUrl(url, false))
+                  //   : '';
+
+                  const libraryName: string = isLibrary ? ((object.includes('Library') && !url.includes('Lists')) ? this.getLibraryNameFromFileFolderUrl(url, false) : (object.includes('File') ? this.getLibraryNameFromFileFolderUrl(url, true) : this.getLibraryNameFromFileFolderUrl(url, false))) : ''; //fixed 28th July 2025                 
+                  
+                  // return {
+                  //   "Object": object,
+                  //   "Title": title,
+                  //   "URL": url,
+                  //   "HasUniquePermissions": this.safeParseJSON(v['"HasUniquePermissions"']),
+                  //   "Users": this.safeParseJSON(v['"Users"']),
+                  //   "Type": this.safeParseJSON(v['"Type"']),
+                  //   "Permissions": this.safeParseJSON(v['"Permissions"']),
+                  //   "GrantedThrough": this.safeParseJSON(v['"GrantedThrough"']),
+                  //   "LibraryName": libraryName
+                  // }
+                    return {
+                      Object: object,
+                      Title: title,
+                      URL: url,
+                      HasUniquePermissions: v.HasUniquePermissions,
+                      Users: v.Users,
+                      Type: v.Type,
+                      Permissions: v.Permissions,
+                      GrantedThrough: v.GrantedThrough,
+                      LibraryName: libraryName
+                    };
                 } catch (error) {
                   console.log(`Error occured in map function: ${error}`)
-                  //alert(`Error occured in map function: ${error}`)
                   return {
                     "Object": "",
-                  "Title": "",
-                  "URL": "",
-                  "HasUniquePermissions": "",
-                  "Users": "",
-                  "Type": "",
-                  "Permissions": "",
-                  "GrantedThrough": "",
-                  "LibraryName": ""
+                    "Title": "",
+                    "URL": "",
+                    "HasUniquePermissions": "",
+                    "Users": "",
+                    "Type": "",
+                    "Permissions": "",
+                    "GrantedThrough": "",
+                    "LibraryName": ""
                   }
                 }
               });
@@ -275,20 +391,62 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       }
     }
   }
+//   private stripQuotes(value: string): string {
+//   return typeof value === 'string' ? value.replace(/^"+|"+$/g, '') : value;
+// }
 
-  private getLibraryNameFromFileFolderUrl = (fileUrl: string, isFile: boolean) => {
-    // Use a regular expression to match the URL pattern
-    const regex = isFile ? /https:\/\/[^/]+\/sites\/[^/]+\/([^/]+)(\/[^/]+)/ : /https:\/\/[^/]+\/sites\/[^/]+\/([^/]+)(\/[^/]+)?\/?$/;
-    const match = fileUrl.match(regex);
+// private cleanQuotes(str: string): string {
+//   if (!str) return '';
+//   return str.replace(/^"+|"+$/g, '').replace(/""/g, '"');
+// }
 
-    if (match && match[1]) {
-      // Decode the library name from URL encoding
-      const libraryName: string = decodeURIComponent(match[1]);
-      return libraryName == 'Shared Documents' ? 'Documents' : libraryName;
-    }
+//   // For fields that might be boolean or arrays in JSON, try to parse safely
+//     private safeParseJSON(field: string | undefined): any {
+//       if (!field) return '';
+//       try {
+//         return JSON.parse(field);
+//       } catch {
+//         return field; // fallback to string if not valid JSON
+//       }
+//     }
 
-    return ''; // Return empty if not found
+  // private getLibraryNameFromFileFolderUrl = (fileUrl: string, isFile: boolean) => {
+  //   // Use a regular expression to match the URL pattern
+  //   const regex = isFile ? /https:\/\/[^/]+\/sites\/[^/]+\/([^/]+)(\/[^/]+)/ : /https:\/\/[^/]+\/sites\/[^/]+\/([^/]+)(\/[^/]+)?\/?$/;
+  //   const match = fileUrl.match(regex);
+
+  //   if (match && match[1]) {
+  //     // Decode the library name from URL encoding
+  //     const libraryName: string = decodeURIComponent(match[1]);
+  //     return libraryName == 'Shared Documents' ? 'Documents' : libraryName;
+  //   }
+
+  //   return ''; // Return empty if not found
+  // }
+
+  private getLibraryNameFromFileFolderUrl = (fileUrl: string, isFile: boolean): string => {
+  try {
+    // Normalize the URL: remove any query strings or fragments
+    const cleanUrl = fileUrl.split('?')[0].split('#')[0];
+
+    // Extract path after "/sites/{site}/"
+    const match = cleanUrl.match(/\/sites\/[^/]+\/(.+)/i);
+    if (!match || !match[1]) return '';
+
+    const pathAfterSite = match[1]; // e.g., 'Library Name/Folder1/Folder2/File.docx'
+
+    // The library name is always the first segment in this path
+    const segments = pathAfterSite.split('/');
+    const rawLibraryName = segments[0];
+
+    const libraryName = decodeURIComponent(rawLibraryName.trim());
+
+    return libraryName === 'Shared Documents' ? 'Documents' : libraryName;
+  } catch (err) {
+    console.error('Error in getLibraryNameFromFileFolderUrl:', err);
+    return '';
   }
+}
 
   private setLibraryNames = () => {
     //library names logic
@@ -356,7 +514,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
       let filteredItems: IPermissionMatrix[] = permissionItems.filter((v, i) => {
         // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length>0: true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && v.Object.includes('Library') && !v.URL.includes('Lists')) || (v.Object.includes('Library') && !v.URL.includes('Lists') && v.Title == this.state.selectedLibraryName)));
         // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName.replace(/[^a-zA-Z ]/g, ""))))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV'); //working before 28th July 2025
-        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.LibraryName != '') || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.LibraryName.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
+        return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes(this.state.selectedUserEmail)).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.LibraryName.includes(this.state.selectedLibraryName)))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
         // return (this.state.selectedUserEmail ? v.Users.split(';').filter((userEmail, i) => userEmail.includes('falsettiadm@qauottawa.onmicrosoft.com')).length > 0 : true) && (!this.state.selectedLibraryName || ((this.state.selectedLibraryName == 'All' && (v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists')) || ((v.Object.includes('Library') || v.Object.includes('Folder') || v.Object.includes('File')) && !v.URL.includes('Lists') && v.URL.includes(this.state.selectedLibraryName.replace(/[^a-zA-Z ]/g, ""))))) && (v.URL.includes('Lists') ? v.Title != 'CustomConfig' && v.Title != 'CustomAssets' : true) && !v.URL.includes('AllSitesCSV');
       })
       this.setState({ permissionItemsGrid: filteredItems });
@@ -513,7 +671,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         isResizable: true,
         sorting: true,
         render: (item: IPermissionMatrix) => {
-          return item.Title
+          return <span title={item.Title}>{item.Title}</span>
         }
         // render: (item?: IOCSRData) => (
         //   <span className={styles.hoverable} onClick={() => this._viewDetails(item)}>
@@ -530,7 +688,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         sorting: true,
         isVisible: false,
         render: (item: IPermissionMatrix) => {
-          return item.Type
+          return <span title={item.Type}>{item.Type}</span>
         }
       },
       {
@@ -541,7 +699,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         isResizable: true,
         sorting: true,
         render: (item: IPermissionMatrix) => {
-          return item.Permissions
+          return <span title={item.Permissions}>{item.Permissions}</span>
         }
       },
       {
@@ -552,7 +710,7 @@ export default class UsersPermissions extends React.Component<IUsersPermissionsP
         isResizable: true,
         sorting: true,
         render: (item: IPermissionMatrix) => {
-          return item.GrantedThrough
+          return <span title={item.GrantedThrough}>{item.GrantedThrough}</span>
         }
       },
       {
